@@ -1,0 +1,132 @@
+# STI-001 — Sigma Detection Rules
+# Special Token Injection in LLM Chat Completions
+# Author  : Lorenzo (github.com/Lollobar17)
+# MITRE   : T1190 / ATLAS AML.T0051
+
+---
+# Rule A: LLM Security Monitor proxy alert log
+title: "STI-001a — Special Token Injection Alert (LLM Proxy Log)"
+id: e1f2a3b4-9c01-4d82-a11e-5g91h4i23j54
+status: experimental
+description: |
+  Detects STI-001 alerts emitted by the LLM Security Monitor proxy.
+  Fires when the proxy logs a WARNING containing 'STI-001 FIRED'.
+references:
+  - https://blog.sentry.security/special-token-injection-sti-attack-guide/
+  - https://atlas.mitre.org/techniques/AML.T0051/
+author: Lorenzo (github.com/Lollobar17)
+date: 2026/07/29
+tags:
+  - attack.initial_access
+  - attack.t1190
+  - attack.ml.aml_t0051
+logsource:
+  category: application
+  product: llm-security-monitor
+detection:
+  selection:
+    message|contains: 'STI-001 FIRED'
+    level: WARNING
+  high_confidence:
+    message|contains: 'confidence=HIGH'
+  condition: selection
+falsepositives:
+  - Security researchers testing the proxy with known STI payloads
+  - Integration tests using ChatML-formatted test fixtures
+level: high
+
+---
+# Rule B: Network — large POST to LLM endpoint from external IP
+title: "STI-001b — Oversized POST to LLM Inference Endpoint"
+id: f2g3b4c5-0d12-5e93-b22f-6h02i5j34k65
+status: experimental
+description: |
+  Detects unusually large POST requests to LLM API endpoints from
+  non-RFC1918 addresses, which may carry embedded STI payloads.
+logsource:
+  category: webserver
+detection:
+  selection:
+    cs-method: POST
+    cs-uri-stem|contains:
+      - '/v1/chat/completions'
+      - '/api/chat'
+      - '/api/generate'
+    cs-bytes|gt: 16384       # legitimate chat turns rarely exceed 16 KB
+  filter_internal:
+    c-ip|startswith:
+      - '10.'
+      - '192.168.'
+      - '172.16.'
+      - '127.'
+  condition: selection and not filter_internal
+falsepositives:
+  - Batch document analysis pipelines
+  - RAG systems sending large context windows
+level: medium
+
+---
+# Rule C: Process — LLM inference process spawning a shell (post-exploitation)
+title: "STI-001c — LLM Inference Process Spawns Child Shell"
+id: g3h4c5d6-1e23-6f04-c33g-7i13j6k45l76
+status: experimental
+description: |
+  Detects a child shell or scripting interpreter spawned by an LLM inference
+  process (ollama, vllm, python serving llm), which may indicate successful
+  function call hijacking via STI.
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_parent:
+    ParentImage|endswith:
+      - '\ollama.exe'
+      - '\python.exe'
+      - '\python3.exe'
+      - '\uvicorn.exe'
+    ParentCommandLine|contains:
+      - 'serve'
+      - 'vllm'
+      - 'llama'
+  selection_child:
+    Image|endswith:
+      - '\cmd.exe'
+      - '\powershell.exe'
+      - '\pwsh.exe'
+      - '\bash.exe'
+      - '\sh.exe'
+  condition: selection_parent and selection_child
+falsepositives:
+  - LLM inference servers that legitimately shell out for plugins
+level: critical
+
+---
+# Rule D: Falco — container shell spawn from LLM inference pod (Linux/k8s)
+title: "STI-001d — LLM Container Spawns Unexpected Shell (Falco)"
+id: h4i5d6e7-2f34-7g15-d44h-8j24k7l56m87
+status: experimental
+description: |
+  Detects a shell spawn inside a container whose image is associated with LLM
+  inference (ollama, vllm, localai). Indicates possible successful STI → RCE.
+logsource:
+  product: falco
+  category: container
+detection:
+  selection:
+    rule: 'Terminal shell in container'
+    container.image.repository|contains:
+      - 'ollama'
+      - 'vllm'
+      - 'localai'
+      - 'text-generation-inference'
+      - 'llama.cpp'
+    proc.name:
+      - sh
+      - bash
+      - python3
+      - nc
+      - ncat
+  condition: selection
+falsepositives:
+  - Admin kubectl exec sessions for maintenance
+level: critical
