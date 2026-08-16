@@ -44,24 +44,24 @@ Client (OpenWebUI / LangChain / curl / PowerShell)
 ┌──────────────────────────────────────────────────────────────┐
 │   LLM Security Monitor  :8080              (Go, zero deps)   │
 │                                                              │
-│   ┌─────────────────────┐  ┌─────────────────────────────┐  │
-│   │ STI-001 Detector    │  │ NLI-001 Detector            │  │
-│   │ ├ Token Registry    │  │ ├ 26 regex patterns          │  │
-│   │ │  32 tokens        │  │ ├ Leet-speak normalizer      │  │
-│   │ │  6 architectures  │  │ └ Levenshtein fuzzy match    │  │
-│   │ └ Obfuscation layer │  └─────────────────────────────┘  │
-│   │   ├ Zero-width strip │           │  parallel (goroutines) │
+│   ┌─────────────────────┐  ┌─────────────────────────────┐   │
+│   │ STI-001 Detector    │  │ NLI-001 Detector            │   │
+│   │ ├ Token Registry    │  │ ├ 26 regex patterns         │   │
+│   │ │  32 tokens        │  │ ├ Leet-speak normalizer     │   │
+│   │ │  6 architectures  │  │ └ Levenshtein fuzzy match   │   │
+│   │ └ Obfuscation layer │  └─────────────────────────────┘   │
+│   │   ├ Zero-width strip│           │  parallel (goroutines) │
 │   │   ├ HTML unescape   │           │                        │
 │   │   ├ URL decode      │◄──────────┘                        │
 │   │   └ Homoglyphs (50+)│                                    │
 │   └─────────────────────┘                                    │
 │                │                                             │
 │         Combined result                                      │
-│         ├─ BLOCK_MODE=true    → 403 Forbidden               │
-│         ├─ SANITIZE_MODE=true → clean & forward             │
-│         └─ alert-only (default) → header + webhook          │
+│         ├─ BLOCK_MODE=true    → 403 Forbidden                │
+│         ├─ SANITIZE_MODE=true → clean & forward              │
+│         └─ alert-only (default) → header + webhook           │
 │                                                              │
-│   Rate limiter: 20 rps / burst 50 (per IP, token bucket)    │
+│   Rate limiter: 20 rps / burst 50 (per IP, token bucket)     │
 │   Metrics:      /metrics (Prometheus text format)            │
 └──────────────────────────────────────────────────────────────┘
         │
@@ -245,17 +245,17 @@ go test -race ./...
 **Test suite:**
 
 ```
-✅  8 STI unit tests               (ChatML, LLaMA, Qwen, DeepSeek, multi-part)
-✅ 10 Obfuscation tests            (ZWSP, HTML, URL encoding, homoglyphs, stacked)
-✅ 24 NLI unit tests               (regex, leet, fuzzy + 7 false-positive checks)
-✅  7 Sanitizer tests              (escape, strip, NLI, combined, roundtrip)
-✅  6 Rate limiter tests           (burst, per-IP, refill, middleware, 429)
-✅  3 Metrics tests                (Prometheus format, content-type, counters)
-✅  8 Integration tests            (mock upstream, end-to-end HTTP, no Ollama)
+ 8 STI unit tests               (ChatML, LLaMA, Qwen, DeepSeek, multi-part)
+ 10 Obfuscation tests            (ZWSP, HTML, URL encoding, homoglyphs, stacked)
+ 24 NLI unit tests               (regex, leet, fuzzy + 7 false-positive checks)
+  7 Sanitizer tests              (escape, strip, NLI, combined, roundtrip)
+  6 Rate limiter tests           (burst, per-IP, refill, middleware, 429)
+  3 Metrics tests                (Prometheus format, content-type, counters)
+  8 Integration tests            (mock upstream, end-to-end HTTP, no Ollama)
 ──────────────────────────────────────────
-✅ 66 unit + integration tests — 0 failures
-✅ 16 PowerShell e2e scenarios
-✅ 33 bash curl scenarios
+ 66 Unit + integration tests — 0 failures
+ 16 PowerShell e2e scenarios
+ 33 bash curl scenarios
 ```
 
 ---
