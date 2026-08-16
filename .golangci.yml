@@ -1,0 +1,17 @@
+linters-settings:
+  errcheck:
+    exclude-functions:
+      - fmt.Fprint
+      - fmt.Fprintf
+      - fmt.Fprintln
+
+issues:
+  exclude-rules:
+    # Test files: errcheck troppo verboso per helper e mock
+    - path: _test\.go
+      linters:
+        - errcheck
+    # Body.Close() in defer: errore non gestibile
+    - linters:
+        - errcheck
+      text: "Body.Close"

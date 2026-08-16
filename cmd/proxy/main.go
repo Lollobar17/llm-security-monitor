@@ -177,7 +177,7 @@ func inspectHandler(
 		}
 
 		body, err := io.ReadAll(io.LimitReader(r.Body, 10<<20))
-		r.Body.Close()
+		_ = r.Body.Close()
 		if err != nil {
 			jsonError(w, http.StatusBadRequest, "failed to read body")
 			return
