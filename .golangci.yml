@@ -8,8 +8,8 @@ linters:
         - fmt.Fprintf
         - fmt.Fprintln
 
-issues:
-  exclude-rules:
+exclusions:
+  rules:
     - path: _test\.go
       linters:
         - errcheck
