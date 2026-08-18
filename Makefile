@@ -58,3 +58,11 @@ help:
 	@grep -E '^##' $(MAKEFILE_LIST) | sed 's/## /  /'
 
 .DEFAULT_GOAL := build
+
+## run-shadow: STI blocks, NLI in shadow (log-only) mode
+run-shadow:
+	STI_MODE=block NLI_MODE=log ./$(BINARY)
+
+## run-shadow-medium: shadow mode with MEDIUM confidence threshold for NLI
+run-shadow-medium:
+	STI_MODE=block NLI_MODE=log NLI_CONFIDENCE_THRESHOLD=MEDIUM ./$(BINARY)
