@@ -14,6 +14,7 @@ Implements detection for the **Special Token Injection (STI)** attack class pres
 
 ---
 
+```
 Client (OpenWebUI / LangChain / curl / PowerShell)
         │ POST /v1/chat/completions
         ▼
