@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LLM Security Monitor — Architecture</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0d1117; color:#c9d1d9; font-family:'Courier New',monospace; display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:24px 16px; }
+h1 { color:#58a6ff; font-size:14px; letter-spacing:3px; margin-bottom:6px; }
+p  { color:#8b949e; font-size:11px; margin-bottom:20px; }
+canvas { border:1px solid #30363d; border-radius:8px; max-width:100%; }
+.legend { display:flex; gap:20px; margin-top:14px; font-size:10px; color:#8b949e; flex-wrap:wrap; justify-content:center; }
+.legend span { display:flex; align-items:center; gap:6px; }
+.dot { width:9px; height:9px; border-radius:2px; flex-shrink:0; }
+.mode-btns { display:flex; gap:8px; margin-bottom:16px; }
+button { background:#161b22; color:#8b949e; border:1px solid #30363d; border-radius:4px; padding:4px 14px; cursor:pointer; font-family:inherit; font-size:10px; letter-spacing:1px; transition:all .2s; }
+button.active-block  { background:#f85149; color:#0d1117; border-color:#f85149; }
+button.active-shadow { background:#e3b341; color:#0d1117; border-color:#e3b341; }
+button.active-clean  { background:#3fb950; color:#0d1117; border-color:#3fb950; }
+a { color:#58a6ff; font-size:10px; margin-top:16px; }
+</style>
+</head>
+<body>
+<h1>LLM SECURITY MONITOR</h1>
+<p>Animated request flow · click a mode to simulate</p>
+
+<div class="mode-btns">
+  <button id="btn-block"  onclick="setMode('block')" >BLOCK</button>
+  <button id="btn-shadow" onclick="setMode('shadow')">SHADOW</button>
+  <button id="btn-clean"  onclick="setMode('clean')" >CLEAN</button>
+</div>
+
+<canvas id="c" width="880" height="320"></canvas>
+
+<div class="legend">
+  <span><div class="dot" style="background:#f85149"></div>STI_MODE=block → 403</span>
+  <span><div class="dot" style="background:#e3b341"></div>NLI_MODE=log → shadow header</span>
+  <span><div class="dot" style="background:#3fb950"></div>clean → 200 forwarded</span>
+  <span><div class="dot" style="background:#bc8cff"></div>STI-001 detector</span>
+  <span><div class="dot" style="background:#d29922"></div>NLI-001 detector</span>
+</div>
+
+<a href="https://github.com/Lollobar17/llm-security-monitor" target="_blank">
+  github.com/Lollobar17/llm-security-monitor
+</a>
+
+<script>
+const C = {
+  bg:'#0d1117', surf:'#161b22', border:'#30363d', text:'#c9d1d9', muted:'#8b949e',
+  blue:'#58a6ff', green:'#3fb950', red:'#f85149', yell:'#e3b341',
+  purp:'#bc8cff', oran:'#d29922'
+};
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+let mode = 'shadow';
+let t = 0;
+let animReq;
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('button').forEach(b => b.className = '');
+  document.getElementById('btn-'+m).className = 'active-'+m;
+  t = 0;
+}
+setMode('shadow');
+
+// ── Draw helpers ──────────────────────────────────────────────────────────────
+
+function box(x, y, w, h, fill, stroke, lw=1.5, r=4) {
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.strokeStyle = stroke;
+  ctx.lineWidth = lw;
+  ctx.stroke();
+}
+
+function txt(x, y, s, color, size=10, weight='normal', align='center') {
+  ctx.fillStyle = color;
+  ctx.font = `${weight} ${size}px 'Courier New', monospace`;
+  ctx.textAlign = align;
+  ctx.fillText(s, x, y);
+}
+
+function arrow(x1, y1, x2, y2, color, lw=1.5) {
+  const dx=x2-x1, dy=y2-y1, len=Math.sqrt(dx*dx+dy*dy);
+  const nx=dx/len, ny=dy/len;
+  const ax=x2-nx*10, ay=y2-ny*10;
+  ctx.beginPath();
+  ctx.moveTo(x1,y1); ctx.lineTo(ax,ay);
+  ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(ax-ny*5,ay+nx*5);
+  ctx.lineTo(ax+ny*5,ay-nx*5);
+  ctx.closePath();
+  ctx.fillStyle=color; ctx.fill();
+}
+
+function packet(x, y, color, r=6) {
+  ctx.beginPath();
+  ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.fillStyle=color;
+  ctx.shadowBlur=12; ctx.shadowColor=color;
+  ctx.fill();
+  ctx.shadowBlur=0;
+}
+
+// ── Animation path interpolation ──────────────────────────────────────────────
+
+function lerp(a, b, t) { return a + (b-a)*t; }
+
+function pathPt(pts, t) {
+  const seg = pts.length-1;
+  const i = Math.min(Math.floor(t*seg), seg-1);
+  const f = t*seg - i;
+  return [lerp(pts[i][0],pts[i+1][0],f), lerp(pts[i][1],pts[i+1][1],f)];
+}
+
+// ── Main draw ─────────────────────────────────────────────────────────────────
+
+const CYCLE = 220; // frames at 60fps ≈ 3.6s
+
+function draw() {
+  const prog = (t % CYCLE) / CYCLE;
+  ctx.clearRect(0, 0, W, H);
+
+  // Background
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0,0,W,H);
+
+  // Grid
+  ctx.setLineDash([6,12]);
+  [85,170,255].forEach(y => {
+    ctx.beginPath(); ctx.moveTo(10,y); ctx.lineTo(870,y);
+    ctx.strokeStyle='#30363d'; ctx.lineWidth=0.5; ctx.stroke();
+  });
+  ctx.setLineDash([]);
+
+  // ── Outcome color ──────────────────────────────────────────────────────────
+  const outColor = mode==='block' ? C.red : mode==='shadow' ? C.yell : C.green;
+
+  // ── Phase progress ─────────────────────────────────────────────────────────
+  const ph1 = Math.min(1, prog/0.13);               // 0-13%  client→proxy
+  const ph2 = Math.min(1, Math.max(0,(prog-0.13)/0.15));  // 13-28% proxy→STI
+  const ph3 = Math.min(1, Math.max(0,(prog-0.28)/0.15));  // 28-43% proxy→NLI
+  const ph4 = Math.min(1, Math.max(0,(prog-0.43)/0.15));  // 43-58% →decision
+  const ph5 = Math.min(1, Math.max(0,(prog-0.58)/0.20));  // 58-78% →outcome
+  const phEnd = prog > 0.78;
+
+  // ── CLIENT ────────────────────────────────────────────────────────────────
+  const cPulse = prog<0.13 ? Math.sin(t*0.3)*0.3+0.7 : 1;
+  box(10,148,90,52, C.surf, prog<0.13 ? C.blue : C.border);
+  txt(55,168,'CLIENT',C.blue,9,'bold');
+  txt(55,182,'HTTP request',C.muted,7);
+
+  // Arrow client→proxy
+  const aColor = ph1>0.5 ? C.blue : C.border;
+  arrow(100,174,158,174, aColor);
+
+  // ── PROXY ─────────────────────────────────────────────────────────────────
+  const proxyActive = prog>0.13 && prog<0.58;
+  box(158,100,112,150, '#091509', proxyActive ? C.green : C.border);
+  txt(214,118,'PROXY',C.green,10,'bold');
+  txt(214,132,'LLM Security',C.muted,7.5);
+  txt(214,143,'Monitor',C.muted,7.5);
+  ctx.beginPath(); ctx.moveTo(168,152); ctx.lineTo(270,152);
+  ctx.strokeStyle=C.border; ctx.lineWidth=0.8; ctx.stroke();
+  txt(214,165,'rate limit',C.muted,7);
+  txt(214,177,'parse JSON',C.muted,7);
+  txt(214,189,'run detectors',C.green,7);
+  txt(214,201,'apply mode',C.muted,7);
+  txt(214,213,'fwd / block',C.muted,7);
+  ctx.beginPath(); ctx.moveTo(168,220); ctx.lineTo(270,220);
+  ctx.strokeStyle=C.border; ctx.lineWidth=0.8; ctx.stroke();
+  txt(214,233,'/metrics  /health',C.blue,6.5);
+
+  // ── STI detector ──────────────────────────────────────────────────────────
+  const stiActive = ph2>0.5 && ph3<0.5;
+  box(338,52,156,88, C.surf, stiActive ? C.purp : C.border);
+  txt(416,70,'STI-001',C.purp,9,'bold');
+  txt(416,84,'32 tokens · 6 architectures',C.muted,7.5);
+  txt(416,97,'ZWSP · HTML · URL · glyph',C.muted,7.5);
+  txt(416,110,'obfuscation normalizer',C.muted,7.5);
+  txt(416,128,'STI_MODE: '+( mode==='block'?'block':mode==='shadow'?'block':'log'), mode==='block'||mode==='shadow'?C.red:C.yell,8,'bold');
+
+  arrow(270,144,338,93, ph2>0.3 ? C.purp : C.border);
+
+  // ── NLI detector ──────────────────────────────────────────────────────────
+  const nliActive = ph3>0.5 && ph4<0.5;
+  box(338,218,156,88, C.surf, nliActive ? C.oran : C.border);
+  txt(416,236,'NLI-001',C.oran,9,'bold');
+  txt(416,250,'26 patterns · regex',C.muted,7.5);
+  txt(416,263,'leet-speak · fuzzy match',C.muted,7.5);
+  txt(416,276,'threshold: HIGH',C.muted,7.5);
+  const nliModeLabel = mode==='clean'?'log (pass)':mode==='shadow'?'log (shadow)':'block';
+  const nliModeColor = mode==='block'?C.red:C.yell;
+  txt(416,294,'NLI_MODE: '+nliModeLabel,nliModeColor,8,'bold');
+
+  arrow(270,204,338,258, ph3>0.3 ? C.oran : C.border);
+
+  // ── DECISION ──────────────────────────────────────────────────────────────
+  const decActive = ph4>0.3;
+  box(558,145,104,62, C.surf, decActive ? C.blue : C.border);
+  txt(610,165,'DECISION',C.blue,9,'bold');
+  txt(610,179,'ENGINE',C.blue,9,'bold');
+  txt(610,197,'apply per-rule mode',C.muted,7);
+
+  arrow(490,96,558,163, ph4>0.3 ? C.purp : C.border);
+  arrow(490,261,558,187, ph4>0.3 ? C.oran : C.border);
+
+  // ── OUTCOME boxes ──────────────────────────────────────────────────────────
+  const showOutcome = ph5 > 0.3;
+
+  // BLOCK
+  box(755,82,90,52, showOutcome&&mode==='block'?'#1a0505':C.surf,
+    showOutcome&&mode==='block'?C.red:C.border);
+  txt(800,104,'403',C.red,14,'bold');
+  txt(800,121,'BLOCKED',C.red,7.5);
+
+  // SHADOW
+  box(755,152,90,52, showOutcome&&mode==='shadow'?'#1a1500':C.surf,
+    showOutcome&&mode==='shadow'?C.yell:C.border);
+  txt(800,174,'SHADOW',C.yell,8,'bold');
+  txt(800,187,'X-NLI-Shadow: true',C.yell,6.5);
+  txt(800,198,'logged, not blocked',C.muted,6.5);
+
+  // FORWARD
+  box(755,218,90,52, showOutcome&&mode==='clean'?'#051505':C.surf,
+    showOutcome&&mode==='clean'?C.green:C.border);
+  txt(800,240,'200 OK',C.green,11,'bold');
+  txt(800,256,'forwarded',C.green,7.5);
+
+  // Outcome arrows
+  if(showOutcome) {
+    if(mode==='block')  arrow(662,160,755,108, C.red,2);
+    if(mode==='shadow') arrow(662,176,755,176, C.yell,2);
+    if(mode==='clean')  arrow(662,192,755,236, C.green,2);
+  }
+
+  // Upstream
+  box(875,220,32,48, C.surf, mode==='clean'&&showOutcome?C.green:C.border);
+  txt(891,240,'LLM',C.muted,7,'bold');
+  txt(891,254,'up',C.muted,6);
+  if(mode!=='block'&&showOutcome) arrow(845,244,875,244, C.green);
+
+  // Static arrows (always visible, muted)
+  if(!showOutcome||mode!=='block')  arrow(662,160,750,110, C.border);
+  if(!showOutcome||mode!=='shadow') arrow(662,176,750,176, C.border);
+  if(!showOutcome||mode!=='clean')  arrow(662,192,750,233, C.border);
+
+  // ── MOVING PACKET ──────────────────────────────────────────────────────────
+  if(ph1>0&&ph1<1) {
+    const [px,py]=pathPt([[55,174],[158,174]],ph1);
+    packet(px,py,C.blue);
+  }
+  if(ph2>0&&ph2<1) {
+    const [px,py]=pathPt([[215,150],[215,93],[338,93]],ph2);
+    packet(px,py,C.purp);
+  }
+  if(ph3>0&&ph3<1) {
+    const [px,py]=pathPt([[215,200],[215,262],[338,262]],ph3);
+    packet(px,py,C.oran);
+  }
+  if(ph4>0&&ph4<1) {
+    const [px,py]=pathPt([[270,174],[558,174]],ph4);
+    packet(px,py,C.blue);
+  }
+  if(ph5>0&&ph5<1) {
+    const dest = mode==='block'?[[660,160],[755,108]]
+               : mode==='shadow'?[[660,176],[755,176]]
+               : [[660,192],[755,236]];
+    const [px,py]=pathPt(dest,ph5);
+    packet(px,py,outColor);
+  }
+
+  // ── PHASE BAR ──────────────────────────────────────────────────────────────
+  box(10,306,860,18, C.surf, 'transparent', 0, 3);
+  const phases=[
+    {l:'REQUEST ARRIVES',  c:C.blue,  a:prog<0.13},
+    {l:'STI-001 SCANNING', c:C.purp,  a:ph2>0&&ph2<1},
+    {l:'NLI-001 SCANNING', c:C.oran,  a:ph3>0&&ph3<1},
+    {l:'DECISION ENGINE',  c:C.blue,  a:ph4>0&&ph4<1},
+    {l:'RESPONSE',         c:outColor,a:phEnd},
+  ];
+  phases.forEach((ph,i)=>{
+    if(ph.a){
+      ctx.fillStyle=ph.c+'33';
+      ctx.beginPath(); ctx.roundRect(10+i*172,306,170,18,3); ctx.fill();
+    }
+    txt(10+i*172+85,318,ph.l, ph.a?ph.c:C.border, 6.5);
+  });
+
+  // ── TITLE BAR ──────────────────────────────────────────────────────────────
+  box(10,2,860,16, C.surf, 'transparent',0,3);
+  txt(440,13,'LLM SECURITY MONITOR — REQUEST FLOW',C.blue,8,'bold');
+
+  t++;
+  animReq = requestAnimationFrame(draw);
+}
+
+draw();
+</script>
+</body>
+</html>

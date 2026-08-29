@@ -1,0 +1,341 @@
+<svg viewBox="0 0 920 340" xmlns="http://www.w3.org/2000/svg"
+  font-family="'Courier New', Courier, monospace">
+  <defs>
+    <style>
+      .bg    { fill: #0d1117; }
+      .surf  { fill: #161b22; }
+      .label { fill: #c9d1d9; }
+      .muted { fill: #8b949e; }
+      .blue  { fill: #58a6ff; }
+      .green { fill: #3fb950; }
+      .red   { fill: #f85149; }
+      .yell  { fill: #e3b341; }
+      .purp  { fill: #bc8cff; }
+      .oran  { fill: #d29922; }
+      .b-bl  { stroke: #30363d; }
+      .b-blue{ stroke: #58a6ff; }
+      .b-gr  { stroke: #3fb950; }
+      .b-red { stroke: #f85149; }
+      .b-ye  { stroke: #e3b341; }
+      .b-pu  { stroke: #bc8cff; }
+      .b-or  { stroke: #d29922; }
+    </style>
+
+    <!-- Glow filters -->
+    <filter id="glow-blue" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-red">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-yell">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-gr">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Arrow marker -->
+    <marker id="arr"    markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#30363d"/>
+    </marker>
+    <marker id="arr-bl" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#58a6ff"/>
+    </marker>
+    <marker id="arr-gr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#3fb950"/>
+    </marker>
+    <marker id="arr-pu" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#bc8cff"/>
+    </marker>
+    <marker id="arr-or" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#d29922"/>
+    </marker>
+    <marker id="arr-re" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#f85149"/>
+    </marker>
+    <marker id="arr-ye" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#e3b341"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="920" height="340" class="bg"/>
+
+  <!-- Grid lines -->
+  <line x1="10" y1="90"  x2="910" y2="90"  stroke="#30363d" stroke-width="0.5" stroke-dasharray="6,12" opacity="0.4"/>
+  <line x1="10" y1="175" x2="910" y2="175" stroke="#30363d" stroke-width="0.5" stroke-dasharray="6,12" opacity="0.4"/>
+  <line x1="10" y1="260" x2="910" y2="260" stroke="#30363d" stroke-width="0.5" stroke-dasharray="6,12" opacity="0.4"/>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!--  STATIC STRUCTURE                                       -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <!-- CLIENT box -->
+  <rect x="10" y="148" width="92" height="52" rx="4" class="surf" stroke="#30363d" stroke-width="1.5"/>
+  <text x="56" y="168" text-anchor="middle" font-size="9" font-weight="bold" class="blue">CLIENT</text>
+  <text x="56" y="182" text-anchor="middle" font-size="7.5" class="muted">HTTP request</text>
+  <text x="56" y="193" text-anchor="middle" font-size="7.5" class="muted">user input</text>
+  <!-- CLIENT pulse -->
+  <rect x="10" y="148" width="92" height="52" rx="4" fill="none" stroke="#58a6ff" stroke-width="1.5">
+    <animate attributeName="opacity" values="0;1;0" dur="7s" begin="0s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- Arrow: CLIENT → PROXY -->
+  <line x1="102" y1="174" x2="158" y2="174" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="102" y1="174" x2="158" y2="174" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arr-bl)">
+    <animate attributeName="opacity" values="0;1;1;0;0;0;0;0" dur="7s" begin="0s" repeatCount="indefinite"/>
+  </line>
+
+  <!-- PROXY box (static) -->
+  <rect x="158" y="100" width="114" height="150" rx="4" fill="#091509" stroke="#30363d" stroke-width="1.5"/>
+  <rect x="158" y="100" width="114" height="150" rx="4" fill="none" stroke="#3fb950" stroke-width="1.5">
+    <animate attributeName="opacity" values="0;0;1;1;1;1;0;0" dur="7s" begin="0s" repeatCount="indefinite"/>
+  </rect>
+  <text x="215" y="118" text-anchor="middle" font-size="10" font-weight="bold" class="green">PROXY</text>
+  <text x="215" y="132" text-anchor="middle" font-size="7.5" class="muted">LLM Security</text>
+  <text x="215" y="143" text-anchor="middle" font-size="7.5" class="muted">Monitor</text>
+  <line x1="168" y1="152" x2="262" y2="152" stroke="#30363d" stroke-width="0.8"/>
+  <text x="215" y="165" text-anchor="middle" font-size="7" class="muted">rate limit</text>
+  <text x="215" y="177" text-anchor="middle" font-size="7" class="muted">parse JSON</text>
+  <text x="215" y="189" text-anchor="middle" font-size="7" class="green">run detectors</text>
+  <text x="215" y="201" text-anchor="middle" font-size="7" class="muted">apply mode</text>
+  <text x="215" y="213" text-anchor="middle" font-size="7" class="muted">fwd / block</text>
+  <line x1="168" y1="220" x2="262" y2="220" stroke="#30363d" stroke-width="0.8"/>
+  <text x="215" y="233" text-anchor="middle" font-size="6.5" class="blue">/metrics  /health</text>
+
+  <!-- Arrows PROXY → STI / NLI -->
+  <line x1="272" y1="145" x2="338" y2="93" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="272" y1="145" x2="338" y2="93" stroke="#bc8cff" stroke-width="1.5" marker-end="url(#arr-pu)">
+    <animate attributeName="opacity" values="0;0;0;1;0;0;0;0" dur="7s" begin="0s" repeatCount="indefinite"/>
+  </line>
+
+  <line x1="272" y1="205" x2="338" y2="258" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="272" y1="205" x2="338" y2="258" stroke="#d29922" stroke-width="1.5" marker-end="url(#arr-or)">
+    <animate attributeName="opacity" values="0;0;0;0;1;0;0;0" dur="7s" begin="0s" repeatCount="indefinite"/>
+  </line>
+
+  <!-- STI-001 box -->
+  <rect x="338" y="52" width="156" height="88" rx="4" class="surf" stroke="#30363d" stroke-width="1.5"/>
+  <rect x="338" y="52" width="156" height="88" rx="4" fill="none" stroke="#bc8cff" stroke-width="1.5">
+    <animate attributeName="opacity" values="0;0;0;1;1;0;0;0" dur="7s" begin="0s" repeatCount="indefinite"/>
+  </rect>
+  <text x="416" y="70" text-anchor="middle" font-size="9" font-weight="bold" class="purp">STI-001</text>
+  <text x="416" y="84" text-anchor="middle" font-size="7.5" class="muted">32 tokens · 6 architectures</text>
+  <text x="416" y="97" text-anchor="middle" font-size="7.5" class="muted">ZWSP · HTML · URL · glyph</text>
+  <text x="416" y="110" text-anchor="middle" font-size="7.5" class="muted">obfuscation normalizer</text>
+  <text x="416" y="128" text-anchor="middle" font-size="8" font-weight="bold" class="red">STI_MODE: block</text>
+
+  <!-- NLI-001 box -->
+  <rect x="338" y="218" width="156" height="88" rx="4" class="surf" stroke="#30363d" stroke-width="1.5"/>
+  <rect x="338" y="218" width="156" height="88" rx="4" fill="none" stroke="#d29922" stroke-width="1.5">
+    <animate attributeName="opacity" values="0;0;0;0;1;1;0;0" dur="7s" begin="0s" repeatCount="indefinite"/>
+  </rect>
+  <text x="416" y="236" text-anchor="middle" font-size="9" font-weight="bold" class="oran">NLI-001</text>
+  <text x="416" y="250" text-anchor="middle" font-size="7.5" class="muted">26 patterns · regex</text>
+  <text x="416" y="263" text-anchor="middle" font-size="7.5" class="muted">leet-speak · fuzzy match</text>
+  <text x="416" y="276" text-anchor="middle" font-size="7.5" class="muted">threshold: HIGH</text>
+  <text x="416" y="294" text-anchor="middle" font-size="8" font-weight="bold" class="yell">NLI_MODE: log (shadow)</text>
+
+  <!-- Arrows detectors → DECISION -->
+  <line x1="494" y1="96" x2="558" y2="162" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="494" y1="96" x2="558" y2="162" stroke="#bc8cff" stroke-width="1.5" marker-end="url(#arr-pu)">
+    <animate attributeName="opacity" values="0;0;0;0;0;1;0;0" dur="7s" begin="0s" repeatCount="indefinite"/>
+  </line>
+
+  <line x1="494" y1="262" x2="558" y2="188" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="494" y1="262" x2="558" y2="188" stroke="#d29922" stroke-width="1.5" marker-end="url(#arr-or)">
+    <animate attributeName="opacity" values="0;0;0;0;0;1;1;0" dur="7s" begin="0s" repeatCount="indefinite"/>
+  </line>
+
+  <!-- DECISION ENGINE box -->
+  <rect x="558" y="145" width="104" height="62" rx="4" class="surf" stroke="#30363d" stroke-width="1.5"/>
+  <rect x="558" y="145" width="104" height="62" rx="4" fill="none" stroke="#58a6ff" stroke-width="1.5">
+    <animate attributeName="opacity" values="0;0;0;0;0;0;1;0" dur="7s" begin="0s" repeatCount="indefinite"/>
+  </rect>
+  <text x="610" y="165" text-anchor="middle" font-size="9" font-weight="bold" class="blue">DECISION</text>
+  <text x="610" y="179" text-anchor="middle" font-size="9" font-weight="bold" class="blue">ENGINE</text>
+  <text x="610" y="197" text-anchor="middle" font-size="7" class="muted">apply per-rule mode</text>
+
+  <!-- Outcome arrows -->
+  <!-- → BLOCK -->
+  <line x1="662" y1="160" x2="755" y2="110" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="662" y1="160" x2="755" y2="110" stroke="#f85149" stroke-width="2" marker-end="url(#arr-re)">
+    <animate attributeName="opacity" values="0;0;0;0;0;0;0;1" dur="7s" begin="0s" repeatCount="indefinite"/>
+  </line>
+  <!-- → SHADOW -->
+  <line x1="662" y1="176" x2="755" y2="176" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="662" y1="176" x2="755" y2="176" stroke="#e3b341" stroke-width="2" marker-end="url(#arr-ye)">
+    <animate attributeName="opacity" values="0;0;0;0;0;0;0;1" dur="7s" begin="0s" repeatCount="indefinite"/>
+  </line>
+  <!-- → FORWARD -->
+  <line x1="662" y1="192" x2="755" y2="236" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="662" y1="192" x2="755" y2="236" stroke="#3fb950" stroke-width="2" marker-end="url(#arr-gr)">
+    <animate attributeName="opacity" values="0;0;0;0;0;0;0;1" dur="7s" begin="0s" repeatCount="indefinite"/>
+  </line>
+
+  <!-- BLOCK outcome -->
+  <rect x="755" y="82" width="90" height="52" rx="4" fill="#1a0505" stroke="#30363d" stroke-width="1.5"/>
+  <rect x="755" y="82" width="90" height="52" rx="4" fill="none" stroke="#f85149" stroke-width="1.5">
+    <animate attributeName="opacity" values="0;0;0;0;0;0;0;1" dur="7s" begin="0s" repeatCount="indefinite"/>
+  </rect>
+  <text x="800" y="104" text-anchor="middle" font-size="14" font-weight="bold" class="red">403</text>
+  <text x="800" y="121" text-anchor="middle" font-size="7.5" class="red">BLOCKED</text>
+
+  <!-- SHADOW outcome -->
+  <rect x="755" y="152" width="90" height="52" rx="4" fill="#1a1500" stroke="#30363d" stroke-width="1.5"/>
+  <rect x="755" y="152" width="90" height="52" rx="4" fill="none" stroke="#e3b341" stroke-width="1.5">
+    <animate attributeName="opacity" values="0;0;0;0;0;0;0;1" dur="7s" begin="0s" repeatCount="indefinite"/>
+  </rect>
+  <text x="800" y="174" text-anchor="middle" font-size="8" font-weight="bold" class="yell">SHADOW</text>
+  <text x="800" y="187" text-anchor="middle" font-size="7" class="yell">X-NLI-Shadow: true</text>
+  <text x="800" y="198" text-anchor="middle" font-size="7" class="muted">logged, not blocked</text>
+
+  <!-- FORWARD outcome -->
+  <rect x="755" y="218" width="90" height="52" rx="4" fill="#051505" stroke="#30363d" stroke-width="1.5"/>
+  <rect x="755" y="218" width="90" height="52" rx="4" fill="none" stroke="#3fb950" stroke-width="1.5">
+    <animate attributeName="opacity" values="0;0;0;0;0;0;0;1" dur="7s" begin="0s" repeatCount="indefinite"/>
+  </rect>
+  <text x="800" y="240" text-anchor="middle" font-size="11" font-weight="bold" class="green">200 OK</text>
+  <text x="800" y="256" text-anchor="middle" font-size="7.5" class="green">forwarded</text>
+
+  <!-- Arrow → UPSTREAM -->
+  <line x1="845" y1="244" x2="878" y2="244" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="845" y1="244" x2="878" y2="244" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arr-gr)">
+    <animate attributeName="opacity" values="0;0;0;0;0;0;0;1" dur="7s" begin="0s" repeatCount="indefinite"/>
+  </line>
+  <rect x="878" y="220" width="36" height="48" rx="4" class="surf" stroke="#30363d" stroke-width="1"/>
+  <text x="896" y="240" text-anchor="middle" font-size="7" font-weight="bold" class="muted">LLM</text>
+  <text x="896" y="254" text-anchor="middle" font-size="6" class="muted">upstream</text>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- MOVING PACKET (animateMotion)                           -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <!-- Phase 1: Client → Proxy -->
+  <circle r="5" fill="#58a6ff" filter="url(#glow-blue)">
+    <animateMotion dur="7s" repeatCount="indefinite"
+      keyTimes="0;0.13;0.14;1"
+      keyPoints="0;1;0;0"
+      calcMode="linear">
+      <mpath href="#path-to-proxy"/>
+    </animateMotion>
+    <animate attributeName="opacity" values="1;1;0;0" dur="7s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Phase 2: Proxy → STI -->
+  <circle r="5" fill="#bc8cff" filter="url(#glow-blue)">
+    <animateMotion dur="7s" repeatCount="indefinite"
+      keyTimes="0;0.28;0.43;0.44;1"
+      keyPoints="0;0;1;0;0"
+      calcMode="linear">
+      <mpath href="#path-to-sti"/>
+    </animateMotion>
+    <animate attributeName="opacity" values="0;0;1;1;0;0" dur="7s" repeatCount="indefinite"
+      keyTimes="0;0.28;0.29;0.43;0.44;1"/>
+  </circle>
+
+  <!-- Phase 3: Proxy → NLI -->
+  <circle r="5" fill="#d29922" filter="url(#glow-blue)">
+    <animateMotion dur="7s" repeatCount="indefinite"
+      keyTimes="0;0.43;0.58;0.59;1"
+      keyPoints="0;0;1;0;0"
+      calcMode="linear">
+      <mpath href="#path-to-nli"/>
+    </animateMotion>
+    <animate attributeName="opacity" values="0;0;1;1;0;0" dur="7s" repeatCount="indefinite"
+      keyTimes="0;0.43;0.44;0.58;0.59;1"/>
+  </circle>
+
+  <!-- Phase 4: → Decision -->
+  <circle r="5" fill="#58a6ff" filter="url(#glow-blue)">
+    <animateMotion dur="7s" repeatCount="indefinite"
+      keyTimes="0;0.68;0.78;0.79;1"
+      keyPoints="0;0;1;0;0"
+      calcMode="linear">
+      <mpath href="#path-to-decision"/>
+    </animateMotion>
+    <animate attributeName="opacity" values="0;0;1;1;0;0" dur="7s" repeatCount="indefinite"
+      keyTimes="0;0.68;0.69;0.78;0.79;1"/>
+  </circle>
+
+  <!-- Paths for animateMotion -->
+  <path id="path-to-proxy"    d="M 55,174 L 158,174"    fill="none"/>
+  <path id="path-to-sti"      d="M 215,150 L 215,93  L 338,93"  fill="none"/>
+  <path id="path-to-nli"      d="M 215,200 L 215,262 L 338,262" fill="none"/>
+  <path id="path-to-decision" d="M 270,174 L 558,174" fill="none"/>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- PHASE BAR                                               -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <rect x="10" y="316" width="900" height="16" rx="3" fill="#161b22"/>
+
+  <!-- Phase 1 indicator -->
+  <rect x="10" y="316" width="178" height="16" rx="3" fill="#58a6ff" opacity="0.2">
+    <animate attributeName="opacity" values="0.2;0.0;0;0;0;0;0;0.2" dur="7s" repeatCount="indefinite"/>
+  </rect>
+  <text x="99" y="327" text-anchor="middle" font-size="6.5" fill="#58a6ff" font-family="monospace">
+    REQUEST ARRIVES
+    <animate attributeName="fill" values="#58a6ff;#30363d;#30363d;#30363d;#30363d;#30363d;#30363d;#58a6ff" dur="7s" repeatCount="indefinite"/>
+  </text>
+
+  <!-- Phase 2 indicator -->
+  <rect x="190" y="316" width="178" height="16" rx="3" fill="#bc8cff" opacity="0">
+    <animate attributeName="opacity" values="0;0.2;0;0;0;0;0;0" dur="7s" repeatCount="indefinite"/>
+  </rect>
+  <text x="279" y="327" text-anchor="middle" font-size="6.5" fill="#30363d" font-family="monospace">
+    STI-001 SCANNING
+    <animate attributeName="fill" values="#30363d;#bc8cff;#30363d;#30363d;#30363d;#30363d;#30363d;#30363d" dur="7s" repeatCount="indefinite"/>
+  </text>
+
+  <!-- Phase 3 indicator -->
+  <rect x="370" y="316" width="178" height="16" rx="3" fill="#d29922" opacity="0">
+    <animate attributeName="opacity" values="0;0;0.2;0;0;0;0;0" dur="7s" repeatCount="indefinite"/>
+  </rect>
+  <text x="459" y="327" text-anchor="middle" font-size="6.5" fill="#30363d" font-family="monospace">
+    NLI-001 SCANNING
+    <animate attributeName="fill" values="#30363d;#30363d;#d29922;#30363d;#30363d;#30363d;#30363d;#30363d" dur="7s" repeatCount="indefinite"/>
+  </text>
+
+  <!-- Phase 4 indicator -->
+  <rect x="550" y="316" width="178" height="16" rx="3" fill="#58a6ff" opacity="0">
+    <animate attributeName="opacity" values="0;0;0;0.2;0;0;0;0" dur="7s" repeatCount="indefinite"/>
+  </rect>
+  <text x="639" y="327" text-anchor="middle" font-size="6.5" fill="#30363d" font-family="monospace">
+    DECISION ENGINE
+    <animate attributeName="fill" values="#30363d;#30363d;#30363d;#58a6ff;#30363d;#30363d;#30363d;#30363d" dur="7s" repeatCount="indefinite"/>
+  </text>
+
+  <!-- Phase 5 indicator -->
+  <rect x="730" y="316" width="180" height="16" rx="3" fill="#3fb950" opacity="0">
+    <animate attributeName="opacity" values="0;0;0;0;0.2;0.2;0.2;0" dur="7s" repeatCount="indefinite"/>
+  </rect>
+  <text x="820" y="327" text-anchor="middle" font-size="6.5" fill="#30363d" font-family="monospace">
+    RESPONSE
+    <animate attributeName="fill" values="#30363d;#30363d;#30363d;#30363d;#3fb950;#3fb950;#3fb950;#30363d" dur="7s" repeatCount="indefinite"/>
+  </text>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- LEGEND                                                  -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <rect x="10" y="3" width="900" height="18" rx="3" fill="#161b22"/>
+  <text x="460" y="15" text-anchor="middle" font-size="9" font-weight="bold" fill="#58a6ff"
+    font-family="'Courier New', monospace" letter-spacing="2">LLM SECURITY MONITOR — REQUEST FLOW</text>
+
+  <!-- Legend items -->
+  <rect x="560" y="4" width="8" height="8" rx="1" fill="#f85149"/>
+  <text x="572" y="13" font-size="7" fill="#8b949e" font-family="monospace">STI block → 403</text>
+
+  <rect x="660" y="4" width="8" height="8" rx="1" fill="#e3b341"/>
+  <text x="672" y="13" font-size="7" fill="#8b949e" font-family="monospace">NLI shadow → logged</text>
+
+  <rect x="775" y="4" width="8" height="8" rx="1" fill="#3fb950"/>
+  <text x="787" y="13" font-size="7" fill="#8b949e" font-family="monospace">clean → 200 fwd</text>
+
+</svg>
